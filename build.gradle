@@ -1,15 +1,18 @@
+
 group 'com.zedcn'
-version '0.1.alpha'
+version '0.2.alpha'
 
 apply plugin: 'java'
 
+[compileJava,compileTestJava,javadoc]*.options*.encoding = "UTF-8"
 
 repositories {
-    maven{
+    maven {
         url 'http://maven.zedcn.com:8081/content/groups/public/'
 
     }
 }
+
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
