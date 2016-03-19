@@ -1,0 +1,16 @@
+group 'com.zedcn'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+
+repositories {
+    maven{
+        url 'http://maven.zedcn.com:8081/content/groups/public/'
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile 'org.apache.httpcomponents:httpclient:4.5.2'
+}
