@@ -7,8 +7,9 @@ public class JTest {
     @Test
     public void testSign() {
         QingStorBucket bucket = new QingStorBucket();
-        bucket.setBucket("chailv").setAccessKey("TWUEZOBZHCCFCFBILWWL").setAccessSecret("5IqDfSC28vOQq1mlimX3WDBzylBFIeLUghE3arX7");
+        bucket.setName("chailv").setAccessKey("TWUEZOBZHCCFCFBILWWL").setAccessSecret("5IqDfSC28vOQq1mlimX3WDBzylBFIeLUghE3arX7");
         QingStorConnection connection = QingStorConnection.create(bucket);
-        System.out.println(connection.isBucketExist());
+//        System.out.println(connection.isBucketExist());
+        connection.statistics();
     }
 }

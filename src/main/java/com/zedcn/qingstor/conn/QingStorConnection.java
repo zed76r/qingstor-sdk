@@ -3,8 +3,10 @@ package com.zedcn.qingstor.conn;
 import com.zedcn.qingstor.elements.QingStorBucket;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 
@@ -31,7 +33,7 @@ public class QingStorConnection {
         QingStorConnection connection = new QingStorConnection();
         connection.qingStorBucket = qingStorBucket;
         connection.httpClient = httpClientBuilder.build();
-        connection.baseUrl = "http://" + qingStorBucket.getBucket() + "." + qingStorBucket.getZone() + ".qingstor.com";
+        connection.baseUrl = "http://" + qingStorBucket.getName() + "." + qingStorBucket.getLocation() + ".qingstor.com";
         return connection;
     }
 
@@ -49,12 +51,28 @@ public class QingStorConnection {
         HttpHead head = new HttpHead(baseUrl);
         long reqTime = System.currentTimeMillis();
         head.addHeader("Date", SignBuilder.getGMTTime(reqTime));
-        head.addHeader("Authorization", SignBuilder.newSign(qingStorBucket).setMethod("HEAD").setResourceName("/" + qingStorBucket.getBucket()).setTimeInMillins(reqTime).build());
+        head.addHeader("Authorization", SignBuilder.newSign(qingStorBucket).setMethod(head.getMethod()).setResourceName("/" + qingStorBucket.getName()).setTimeInMillins(reqTime).build());
         try {
             HttpResponse response = httpClient.execute(head);
             return response.getStatusLine().getStatusCode() == 200;
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public QingStorBucket statistics() {
+        HttpGet get = new HttpGet(baseUrl + "/?stats");
+        long reqTime = System.currentTimeMillis();
+//        get.addHeader("Host", baseUrl);
+        get.addHeader("Date", SignBuilder.getGMTTime(reqTime));
+        get.addHeader("Authorization", SignBuilder.newSign(qingStorBucket).setMethod(get.getMethod()).setResourceName("/" + qingStorBucket.getName()).setTimeInMillins(reqTime).build());
+        try {
+            HttpResponse response = httpClient.execute(get);
+            String result = EntityUtils.toString(response.getEntity());
+            System.out.println(result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return qingStorBucket;
     }
 }

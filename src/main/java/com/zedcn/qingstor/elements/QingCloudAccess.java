@@ -9,7 +9,7 @@ public class QingCloudAccess {
     /**
      * 青云访问服务所在区域。默认为PEK3A区。
      */
-    private String zone;
+    private String location;
     /**
      * 用于访问青云API的AccessKeyID
      */
@@ -20,7 +20,7 @@ public class QingCloudAccess {
     private String accessSecret;
 
     public QingCloudAccess(){
-        setZone("pek3a");//默认区域
+        setLocation("pek3a");//默认区域
     }
 
     public String getAccessKey() {
@@ -41,12 +41,12 @@ public class QingCloudAccess {
         return this;
     }
 
-    public String getZone() {
-        return zone;
+    public String getLocation() {
+        return location;
     }
 
-    public QingCloudAccess setZone(String zone) {
-        this.zone = zone;
+    public QingCloudAccess setLocation(String location) {
+        this.location = location;
         return this;
     }
 }

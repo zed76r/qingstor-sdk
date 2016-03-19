@@ -11,11 +11,11 @@ public class QingStorBucket extends QingCloudAccess {
     /**
      * 对象存储Bucket实例名称
      */
-    private String bucket;
+    private String name;
     /**
      * Bucket数量
      */
-    private String count;
+    private int count;
     /**
      * Bucket总大小
      */
@@ -33,12 +33,12 @@ public class QingStorBucket extends QingCloudAccess {
         super();
     }
 
-    public String getBucket() {
-        return bucket;
+    public String getName() {
+        return name;
     }
 
-    public QingStorBucket setBucket(String bucket) {
-        this.bucket = bucket;
+    public QingStorBucket setName(String name) {
+        this.name = name;
         return this;
     }
 
@@ -50,11 +50,11 @@ public class QingStorBucket extends QingCloudAccess {
         this.size = size;
     }
 
-    public String getCount() {
+    public int getCount() {
         return count;
     }
 
-    public void setCount(String count) {
+    public void setCount(int count) {
         this.count = count;
     }
 

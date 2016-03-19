@@ -1,8 +1,6 @@
 package com.zedcn.qingstor.conn;
 
 import com.zedcn.qingstor.elements.QingCloudAccess;
-import com.zedcn.qingstor.elements.QingStorBucket;
-import com.zedcn.qingstor.elements.QingStorObject;
 import com.zedcn.qingstor.excption.SignExption;
 
 import javax.crypto.Mac;
@@ -40,6 +38,12 @@ public class SignBuilder {
             signBuilder.setAccessKey(qingCloudAccess.getAccessKey())
                     .setAccessSecret(qingCloudAccess.getAccessSecret());
         return signBuilder;
+    }
+
+    public static String getGMTTime(long timeInMillins) {
+        SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        return format.format(new Date(timeInMillins));
     }
 
     public SignBuilder setAccessKey(String accessKey) {
@@ -92,12 +96,6 @@ public class SignBuilder {
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new SignExption();
         }
-    }
-
-    public static String getGMTTime(long timeInMillins) {
-        SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
-        format.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return format.format(new Date(timeInMillins));
     }
 
 /*    private boolean isEmpty(String str) {
