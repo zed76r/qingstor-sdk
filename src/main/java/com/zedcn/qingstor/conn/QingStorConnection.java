@@ -1,9 +1,13 @@
 package com.zedcn.qingstor.conn;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.zedcn.qingstor.elements.QingCloudAccess;
 import com.zedcn.qingstor.elements.QingStorBucket;
 import com.zedcn.qingstor.elements.QingStorObject;
 import com.zedcn.qingstor.excption.ObjectPutExcption;
+import com.zedcn.qingstor.excption.RequestExcption;
 import com.zedcn.qingstor.excption.UnauthorizedExcption;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -19,19 +23,22 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * 青云对象存储连接
  * Created by Zed on 2016/3/19.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class QingStorConnection {
+    private static final String SCHEME = "http://";
     private HttpClient httpClient;
     private QingStorBucket qingStorBucket;
     private String baseUrl;
 
-    protected QingStorConnection() {
+    private QingStorConnection() {
     }
 
     /**
@@ -45,7 +52,7 @@ public class QingStorConnection {
         QingStorConnection connection = new QingStorConnection();
         connection.qingStorBucket = qingStorBucket;
         connection.httpClient = httpClientBuilder.build();
-        connection.baseUrl = "http://" + qingStorBucket.getName() + "." + qingStorBucket.getLocation() + ".qingstor.com";
+        connection.baseUrl = SCHEME + qingStorBucket.getName() + "." + qingStorBucket.getLocation() + ".qingstor.com";
         return connection;
     }
 
@@ -57,6 +64,57 @@ public class QingStorConnection {
      */
     public static QingStorConnection create(QingStorBucket qingStorBucket) {
         return create(qingStorBucket, HttpClientBuilder.create());
+    }
+
+    /**
+     * 获取所有Bucket
+     * @param qingCloudAccess 青云API密钥
+     * @return Bucket集合
+     */
+    public static List<QingStorBucket> getAllBuckets(QingCloudAccess qingCloudAccess) {
+        HttpClient client = HttpClientBuilder.create().build();
+        HttpGet get = new HttpGet(SCHEME + "qingstor.com");
+        long reqTime = System.currentTimeMillis();
+        get.addHeader("Date", SignBuilder.getGMTTime(reqTime));
+        get.addHeader("Authorization", SignBuilder.newSign(qingCloudAccess).setMethod(get.getMethod()).setResourceName("/").setTimeInMillins(reqTime).build());
+        try {
+            HttpResponse response = client.execute(get);
+            int httpcode = response.getStatusLine().getStatusCode();
+            if (httpcode == 200) {
+                JsonObject jsonObject = new Gson().fromJson(EntityUtils.toString(response.getEntity()), JsonObject.class);
+                if (jsonObject.getAsJsonPrimitive("count").getAsInt() != 0) {
+                    JsonArray array = jsonObject.getAsJsonArray("buckets");
+                    List<QingStorBucket> buckets = new ArrayList<>();
+                    String qcaStr = new Gson().toJson(qingCloudAccess);
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                    simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                    for (int i = 0; i < array.size(); i++) {
+                        JsonObject bucketObject = array.get(i).getAsJsonObject();
+                        QingStorBucket bucket = new Gson().fromJson(qcaStr, QingStorBucket.class);
+                        bucket.setName(bucketObject.getAsJsonPrimitive("name").getAsString());
+                        try {
+                            bucket.setCreated(simpleDateFormat.parse(bucketObject.getAsJsonPrimitive("created").getAsString()));
+                        } catch (ParseException e) {
+                            bucket.setCreated(new Date());
+                        }
+                        buckets.add(bucket);
+                    }
+                    return buckets;
+                }
+                return null;
+            } else switch (httpcode) {
+                case 403:
+                    System.out.println(EntityUtils.toString(response.getEntity()));
+                    throw new UnauthorizedExcption();
+                default:
+                    throw new RequestExcption();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            HttpClientUtils.closeQuietly(client);
+        }
     }
 
     /**

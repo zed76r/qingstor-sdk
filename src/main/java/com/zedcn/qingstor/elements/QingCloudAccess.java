@@ -4,7 +4,7 @@ package com.zedcn.qingstor.elements;
  * 登录青云基本信息
  * Created by Zed on 2016/3/19.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class QingCloudAccess {
     /**
      * 青云访问服务所在区域。默认为PEK3A区。

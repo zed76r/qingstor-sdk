@@ -1,6 +1,6 @@
 
 group 'com.zedcn'
-version '0.2.alpha'
+version '0.3.alpha'
 
 apply plugin: 'java'
 

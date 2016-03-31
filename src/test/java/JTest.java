@@ -1,18 +1,17 @@
 import com.zedcn.qingstor.conn.QingStorConnection;
+import com.zedcn.qingstor.elements.QingCloudAccess;
 import com.zedcn.qingstor.elements.QingStorBucket;
-import com.zedcn.qingstor.elements.QingStorObject;
 import org.junit.Test;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.util.List;
 
 public class JTest {
 
     @Test
     public void testSign() {
-        QingStorBucket bucket = new QingStorBucket();
-        bucket.setName("develop").setAccessKey("TWUEZOBZHCCFCFBILWWL").setAccessSecret("5IqDfSC28vOQq1mlimX3WDBzylBFIeLUghE3arX7");
-        QingStorConnection connection = QingStorConnection.create(bucket);
+        QingCloudAccess bucket = new QingCloudAccess();
+        bucket.setAccessKey("UGMOXFTZIYFNVRDJSGWJ").setAccessSecret("V2iFT1kZH93exzZmZ869AuvX1gYRWIyyHMsTxFsj");
+//        QingStorConnection connection = QingStorConnection.create(bucket);
 //        System.out.println(connection.isBucketExist());
 //        bucket = connection.statistics();
 //        bucket.getName();
@@ -28,7 +27,9 @@ public class JTest {
 //        } catch (FileNotFoundException e) {
 //            e.printStackTrace();
 //        }
-        connection.deleteObject("lyl.dog");
+//        connection.deleteObject("lyl.dog");
+        List<QingStorBucket> buckets = QingStorConnection.getAllBuckets(bucket);
+        System.out.println(buckets);
 
     }
 }

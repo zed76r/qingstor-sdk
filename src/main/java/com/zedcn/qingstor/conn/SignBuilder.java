@@ -19,7 +19,7 @@ import java.util.*;
  * 签名构造器
  * Created by mrfen on 2016/3/19.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 public class SignBuilder {
     private String method;
     private String contentMD5;
