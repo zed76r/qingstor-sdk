@@ -63,6 +63,7 @@ public class QingStorObject {
 
     /**
      * 自动获取二进制内容大小
+     * @return 该实例
      */
     public QingStorObject autoContentLength() {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

@@ -1,6 +1,6 @@
 
 group 'com.zedcn'
-version '0.3.alpha'
+version '0.4.alpha'
 
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -10,15 +10,11 @@ apply plugin: 'maven'
 
 repositories {
     jcenter()
-    maven {
-        url 'http://maven.zedcn.com:8081/content/groups/public/'
-
-    }
 }
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'org.apache.httpcomponents:httpclient:4.5.2'
+    compile 'com.squareup.okhttp3:okhttp:3.4.1'
     compile 'com.google.code.gson:gson:2.6.2'
 }
 

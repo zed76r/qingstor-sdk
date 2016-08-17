@@ -1,15 +1,12 @@
-package com.zedcn.qingstor.conn;
+package com.zedcn.qingstor.api;
 
 import com.zedcn.qingstor.elements.QingCloudAccess;
 import com.zedcn.qingstor.elements.QingStorObject;
 import com.zedcn.qingstor.excption.SignExption;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.Charset;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
@@ -17,18 +14,18 @@ import java.util.*;
 
 /**
  * 签名构造器
- * Created by mrfen on 2016/3/19.
+ * Created by Zed on 2016/3/19.
  */
-@SuppressWarnings({"unused", "WeakerAccess"})
 public class SignBuilder {
     private String method;
     private String contentMD5;
     private String contentType;
-    private long timeInMillins;
+    private long timeInMillis;
     private String resourceName;
     private String accessKey;
     private String accessSecret;
-    private List<NameValuePair> params;
+    private HashMap<String, String> params = new HashMap<>();
+    private HashMap<String, String> headers = new HashMap<>();
 
     public static SignBuilder newSign() {
         return newSign(null);
@@ -46,10 +43,10 @@ public class SignBuilder {
         return newSign(access).setContentType(object.getContentType()).setContentMD5(object.getContentMD5());
     }
 
-    public static String getGMTTime(long timeInMillins) {
+    public static String getGMTTime(long timeInMillis) {
         SimpleDateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
         format.setTimeZone(TimeZone.getTimeZone("GMT"));
-        return format.format(new Date(timeInMillins));
+        return format.format(new Date(timeInMillis));
     }
 
     public SignBuilder setAccessKey(String accessKey) {
@@ -82,13 +79,28 @@ public class SignBuilder {
         return this;
     }
 
-    public SignBuilder setTimeInMillins(long timeInMillins) {
-        this.timeInMillins = timeInMillins;
+    public SignBuilder setTimeInMillis(long timeInMillis) {
+        this.timeInMillis = timeInMillis;
         return this;
     }
 
-    public SignBuilder setParams(List<NameValuePair> params) {
-        this.params = params;
+    public SignBuilder setParams(HashMap<String, String> params) {
+        this.params.putAll(params);
+        return this;
+    }
+
+    public SignBuilder addParam(String key, String value) {
+        params.put(key, value);
+        return this;
+    }
+
+    public SignBuilder setHeaders(HashMap<String, String> headers) {
+        this.headers.putAll(headers);
+        return this;
+    }
+
+    public SignBuilder addHeaders(String key, String value) {
+        headers.put(key, value);
         return this;
     }
 
@@ -96,16 +108,30 @@ public class SignBuilder {
         String toSign = method + "\n";
         toSign += (contentMD5 == null ? "" : contentMD5) + "\n";
         toSign += (contentType == null ? "" : contentType) + "\n";
-        toSign += getGMTTime(timeInMillins) + "\n";
+        toSign += getGMTTime(timeInMillis) + "\n";
+        if (!ApiUtils.isEmpty(headers)) {
+            StringBuilder headerSB = new StringBuilder();
+            headers.forEach((k,v)->{
+                if (ApiUtils.isEmpty(v)) return;
+                headerSB.append(k.toLowerCase())
+                        .append(":")
+                        .append(v)
+                        .append("\n");
+            });
+            toSign += headerSB.toString();
+        }
         toSign += resourceName;
-        if (params != null && params.size() > 0) {
-            String paramStr = URLEncodedUtils.format(params, Charset.forName("UTF-8"));
-            if (!paramStr.isEmpty()) {
-                if ('=' == (paramStr.charAt(paramStr.length() - 1))) {
-                    paramStr = paramStr.substring(0, paramStr.length() - 1);
-                }
-                toSign += "?" + paramStr;
-            }
+        if (!ApiUtils.isEmpty(params)) {
+            StringBuilder paramSB = new StringBuilder();
+            params.forEach((k, v) -> {
+                if (ApiUtils.isEmpty(v)) return;
+                paramSB.append(k)
+                        .append("=")
+                        .append(v)
+                        .append("&");
+            });
+            paramSB.deleteCharAt(paramSB.length() - 1);
+            toSign += "?" + paramSB.toString();
         }
         SecretKey secretKey = new SecretKeySpec(accessSecret.getBytes(), "HmacSHA256");
         try {
