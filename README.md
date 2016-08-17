@@ -19,6 +19,6 @@ compile 'com.zedcn:qingstor-sdk:0.4.alpha'
 ### Example
 
 ```java
-ObjectApi api = ObjectApi.newApi(bucket);
+ObjectApi api = ObjectApi.Builder.newApi(bucket);
 api.delete("anyObj");
 ```
