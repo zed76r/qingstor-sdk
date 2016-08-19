@@ -37,8 +37,13 @@ final class ApiUtils {
                 .build();
     }
 
-    static RequestBody streamBody(InputStream inputStream, MediaType mediaType) {
+    static RequestBody streamBody(long length, InputStream inputStream, MediaType mediaType) {
         return new RequestBody() {
+            @Override
+            public long contentLength() throws IOException {
+                return length;
+            }
+
             @Override
             public MediaType contentType() {
                 return mediaType;

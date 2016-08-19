@@ -59,7 +59,7 @@ class ObjectApiImpl implements ObjectApi {
         long now = System.currentTimeMillis();
         Request request = new Request.Builder()
                 .url(baseUrl + object.getKey())
-                .put(streamBody(object.getContent(), MediaType.parse(object.getContentType())))
+                .put(streamBody(object.getContentLength(), object.getContent(), MediaType.parse(object.getContentType())))
                 .addHeader("Date", getGMTTime(now))
                 .addHeader("Authorization",
                         newSign(bucket).setMethod(PUT)
@@ -109,12 +109,16 @@ class ObjectApiImpl implements ObjectApi {
         try {
             Response response = client.newCall(request).execute();
             switch (response.code()) {
+                case 200:
                 case 201:
                     break;
                 case 401:
                 case 403:
                     System.out.println(response.body().string());
                     throw new UnauthorizedExcption();
+                default:
+                    System.out.println(response.body().string());
+                    break;
             }
         } catch (IOException e) {
             throw new RequestExcption();
@@ -140,11 +144,17 @@ class ObjectApiImpl implements ObjectApi {
                 .build();
         try {
             Response response = client.newCall(request).execute();
-            switch (response.code()){
+            switch (response.code()) {
+                case 200:
+                case 201:
+                    break;
                 case 401:
                 case 403:
                     System.out.println(response.body().string());
                     throw new UnauthorizedExcption();
+                default:
+                    System.out.println(response.body().string());
+                    break;
             }
         } catch (IOException e) {
             throw new RequestExcption();

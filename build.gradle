@@ -1,11 +1,10 @@
-
 group 'com.zedcn'
-version '0.4.alpha'
+version '1.0.0.alpha'
 
 apply plugin: 'java'
 apply plugin: 'maven'
 
-[compileJava,compileTestJava,javadoc]*.options*.encoding = "UTF-8"
+[compileJava, compileTestJava, javadoc]*.options*.encoding = "UTF-8"
 [javadoc]*.options*.charSet = "UTF-8"
 
 repositories {
@@ -18,12 +17,29 @@ dependencies {
     compile 'com.google.code.gson:gson:2.6.2'
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.java.srcDirs
-    classifier = 'sources'
+task sourceJar(type: Jar, dependsOn: classes) {
+    destinationDir = new File("/${projectDir.path.toString()}/release/${version}/");
+    from sourceSets.main.allJava
+    classifier "sources"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
+    destinationDir = new File("/${projectDir.path.toString()}/release/${version}/");
     classifier = 'javadoc'
     from javadoc
+}
+
+task writeNewPom << {
+    pom {
+        project {
+            inceptionYear '2016'
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+    }.writeTo("/release/${version}/pom.xml")
 }
