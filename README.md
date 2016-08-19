@@ -4,7 +4,7 @@
 ### Quick Start
 
 ```gradle
-compile 'com.zedcn:qingstor-sdk:0.4.alpha'
+compile 'com.zedcn:qingstor-sdk:1.0.0.alpha'
 ```
 
 ！如果使用Jar包，需要依赖其他的Jar包
@@ -16,9 +16,10 @@ compile 'com.zedcn:qingstor-sdk:0.4.alpha'
 
 ----------------------------------
 
-### Example
+### How to use
 
 ```java
 ObjectApi api = ObjectApi.Builder.newApi(bucket);
 api.delete("anyObj");
+api.get("excited").getContent();
 ```
