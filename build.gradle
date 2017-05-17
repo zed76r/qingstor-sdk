@@ -1,5 +1,5 @@
 group 'com.zedcn'
-version '1.0.0.alpha'
+version '1.0.1.alpha'
 
 apply plugin: 'java'
 apply plugin: 'maven'
@@ -11,10 +11,15 @@ repositories {
     jcenter()
 }
 
+task wrapper(type: Wrapper) {
+    gradleVersion = '3.5'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+}
+
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.11'
-    compile 'com.squareup.okhttp3:okhttp:3.4.1'
-    compile 'com.google.code.gson:gson:2.6.2'
+    compile 'com.squareup.okhttp3:okhttp:latest.release'
+    compile 'com.google.code.gson:gson:latest.release'
 }
 
 task sourceJar(type: Jar, dependsOn: classes) {

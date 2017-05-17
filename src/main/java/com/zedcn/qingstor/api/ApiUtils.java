@@ -7,6 +7,7 @@ import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import okio.BufferedSink;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -51,10 +52,13 @@ final class ApiUtils {
 
             @Override
             public void writeTo(BufferedSink sink) throws IOException {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 byte[] buf = new byte[128];
-                while (inputStream.read(buf) != -1) {
-                    sink.write(buf);
+                while (inputStream.available() > 0) {
+                    int len = inputStream.read(buf);
+                    baos.write(buf, 0, len);
                 }
+                sink.write(baos.toByteArray(), 0, baos.size());
             }
         };
     }

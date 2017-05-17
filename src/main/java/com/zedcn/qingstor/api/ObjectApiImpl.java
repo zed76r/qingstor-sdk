@@ -8,6 +8,7 @@ import com.zedcn.qingstor.excption.UnauthorizedExcption;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import static com.zedcn.qingstor.api.ApiUtils.*;
 import static com.zedcn.qingstor.api.SignBuilder.getGMTTime;
@@ -59,7 +60,11 @@ class ObjectApiImpl implements ObjectApi {
         long now = System.currentTimeMillis();
         Request request = new Request.Builder()
                 .url(baseUrl + object.getKey())
-                .put(streamBody(object.getContentLength(), object.getContent(), MediaType.parse(object.getContentType())))
+                .put(
+                        Objects.nonNull(object.getContent()) ?
+                                streamBody(object.getContentLength(), object.getContent(), MediaType.parse(object.getContentType()))
+                                : RequestBody.create(MediaType.parse(object.getContentType()), object.getContentBinary())
+                )
                 .addHeader("Date", getGMTTime(now))
                 .addHeader("Authorization",
                         newSign(bucket).setMethod(PUT)

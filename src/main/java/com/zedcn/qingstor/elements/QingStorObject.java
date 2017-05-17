@@ -1,13 +1,17 @@
 package com.zedcn.qingstor.elements;
 
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * 青云对象存储Object实例
  * Created by Zed on 2016/3/19.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "UnusedReturnValue", "WeakerAccess"})
 public class QingStorObject {
     /**
      * 对象Key
@@ -29,6 +33,10 @@ public class QingStorObject {
      * 对象实体
      */
     private InputStream content;
+    /**
+     * 对象的二进制数组
+     */
+    private byte[] contentBinary;
 
     public QingStorObject() {
         setContentType(ContentType.DEFAULT_BINARY);
@@ -63,22 +71,25 @@ public class QingStorObject {
 
     /**
      * 自动获取二进制内容大小
+     *
      * @return 该实例
      */
     public QingStorObject autoContentLength() {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        byte[] bytes = new byte[128];
-        try {
-            while (getContent().read(bytes) != -1) {
-                byteArrayOutputStream.write(bytes, 0, bytes.length);
+        if (Objects.nonNull(getContent())) {
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] bytes = new byte[128];
+            try {
+                while (getContent().read(bytes) != -1) {
+                    byteArrayOutputStream.write(bytes, 0, bytes.length);
+                }
+                setContentLength(byteArrayOutputStream.size());
+                getContent().close();
+                setContent(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            setContentLength(byteArrayOutputStream.size());
-            getContent().close();
-            setContent(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
-//            byteArrayOutputStream.reset();
-//            byteArrayOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else if (Objects.nonNull(getContentBinary())) {
+            setContentLength(getContentBinary().length);
         }
         return this;
     }
@@ -101,9 +112,19 @@ public class QingStorObject {
         return this;
     }
 
+    public byte[] getContentBinary() {
+        return contentBinary;
+    }
+
+    public QingStorObject setContentBinary(byte[] contentBinary) {
+        this.contentBinary = contentBinary;
+        return this;
+    }
+
     /**
      * 青云对象类型
      */
+    @SuppressWarnings("WeakerAccess")
     public static class ContentType {
         public static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
         public static final String APPLICATION_JSON = "application/json";
