@@ -48,7 +48,7 @@ class ObjectApiImpl implements ObjectApi {
             }
             return null;
         } catch (IOException e) {
-            throw new RequestExcption();
+            throw new RequestExcption(e);
         }
     }
 
@@ -82,7 +82,7 @@ class ObjectApiImpl implements ObjectApi {
                     throw new ObjectPutExcption(response.code());
             }
         } catch (IOException e) {
-            throw new RequestExcption();
+            throw new RequestExcption(e);
         }
     }
 
@@ -126,22 +126,8 @@ class ObjectApiImpl implements ObjectApi {
                 )
                 .build();
         requestAnyway(request);
-
     }
 
-    private void requestAnyway(Request request) {
-        OkHttpClient client = getClient();
-        try {
-            Response response = client.newCall(request).execute();
-            switch (response.code()) {
-                case 401:
-                case 403:
-                    throw new UnauthorizedExcption();
-            }
-        } catch (IOException e) {
-            throw new RequestExcption();
-        }
-    }
 
     @Override
     public QingStorObject exists(String objectName) {
@@ -168,7 +154,7 @@ class ObjectApiImpl implements ObjectApi {
             }
             return null;
         } catch (IOException e) {
-            throw new RequestExcption();
+            throw new RequestExcption(e);
         }
     }
 

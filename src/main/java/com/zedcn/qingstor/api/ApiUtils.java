@@ -1,10 +1,9 @@
 package com.zedcn.qingstor.api;
 
 import com.zedcn.qingstor.elements.QingStorObject;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
+import com.zedcn.qingstor.excption.RequestExcption;
+import com.zedcn.qingstor.excption.UnauthorizedExcption;
+import okhttp3.*;
 import okio.BufferedSink;
 
 import java.io.ByteArrayOutputStream;
@@ -12,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 青云对象Api工具类
@@ -27,7 +27,8 @@ final class ApiUtils {
     static QingStorObject buildObject(String key, ResponseBody body) {
         QingStorObject object = new QingStorObject();
         object.setKey(key);
-        object.setContentType(body.contentType().type());
+        MediaType mediaType = body.contentType();
+        object.setContentType(Objects.nonNull(mediaType) ? mediaType.type() : null);
         object.setContentLength(body.contentLength());
         object.setContent(body.byteStream());
         return object;
@@ -73,5 +74,19 @@ final class ApiUtils {
             return ((Map) obj).isEmpty();
         }
         return false;
+    }
+
+    static void requestAnyway(Request request) {
+        OkHttpClient client = getClient();
+        try {
+            Response response = client.newCall(request).execute();
+            switch (response.code()) {
+                case 401:
+                case 403:
+                    throw new UnauthorizedExcption();
+            }
+        } catch (IOException e) {
+            throw new RequestExcption(e);
+        }
     }
 }
