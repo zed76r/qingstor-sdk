@@ -25,7 +25,7 @@ class ObjectApiImpl implements ObjectApi {
     ObjectApiImpl(QingStorBucket bucket) {
         Assert.notNull(bucket);
         this.bucket = bucket;
-        baseUrl = "http://" + bucket.getName() + "." + bucket.getLocation() + ".qingstor.com/";
+        baseUrl = "https://" + bucket.getName() + "." + bucket.getLocation() + ".qingstor.com/";
     }
 
     @Override
@@ -43,10 +43,8 @@ class ObjectApiImpl implements ObjectApi {
                 ).build();
         try {
             Response response = okHttpClient.newCall(request).execute();
-            if (response.code() == 200) {
+            if (response.isSuccessful()) {
                 return ApiUtils.buildObject(objectName, response.body());
-            } else {
-                System.out.println(response.body().string());
             }
             return null;
         } catch (IOException e) {
@@ -79,10 +77,8 @@ class ObjectApiImpl implements ObjectApi {
                 case 200:
                     return;
                 case 403:
-                    System.out.println(response.body().string());
                     throw new UnauthorizedExcption();
                 default:
-                    System.out.println(response.body().string());
                     throw new ObjectPutExcption(response.code());
             }
         } catch (IOException e) {
@@ -93,7 +89,6 @@ class ObjectApiImpl implements ObjectApi {
 
     @Override
     public void copy(String source, String target) {
-        OkHttpClient client = getClient();
         long now = System.currentTimeMillis();
 
         Request request = new Request.Builder()
@@ -111,28 +106,11 @@ class ObjectApiImpl implements ObjectApi {
                         .addHeaders("X-QS-Copy-Source", "/" + bucket.getName() + "/" + source)
                         .build())
                 .build();
-        try {
-            Response response = client.newCall(request).execute();
-            switch (response.code()) {
-                case 200:
-                case 201:
-                    break;
-                case 401:
-                case 403:
-                    System.out.println(response.body().string());
-                    throw new UnauthorizedExcption();
-                default:
-                    System.out.println(response.body().string());
-                    break;
-            }
-        } catch (IOException e) {
-            throw new RequestExcption();
-        }
+        requestAnyway(request);
     }
 
     @Override
     public void delete(String objectName) {
-        OkHttpClient client = getClient();
         long now = System.currentTimeMillis();
         Request request = new Request.Builder()
                 .url(baseUrl + objectName)
@@ -147,19 +125,18 @@ class ObjectApiImpl implements ObjectApi {
                         .build()
                 )
                 .build();
+        requestAnyway(request);
+
+    }
+
+    private void requestAnyway(Request request) {
+        OkHttpClient client = getClient();
         try {
             Response response = client.newCall(request).execute();
             switch (response.code()) {
-                case 200:
-                case 201:
-                    break;
                 case 401:
                 case 403:
-                    System.out.println(response.body().string());
                     throw new UnauthorizedExcption();
-                default:
-                    System.out.println(response.body().string());
-                    break;
             }
         } catch (IOException e) {
             throw new RequestExcption();
@@ -181,14 +158,13 @@ class ObjectApiImpl implements ObjectApi {
                 ).build();
         try {
             Response response = okHttpClient.newCall(request).execute();
-            if (response.code() == 200) {
+            if (response.isSuccessful()) {
                 QingStorObject object = new QingStorObject();
                 object.setContentType(response.header("Content-Type"));
-                object.setContentLength(Long.parseLong(response.header("Content-Length")));
+                String contentLenght = response.header("Content-Length");
+                object.setContentLength(Long.parseLong(Objects.nonNull(contentLenght) ? contentLenght : "0"));
                 object.setKey(objectName);
                 return object;
-            } else {
-                System.out.println(response.body().string());
             }
             return null;
         } catch (IOException e) {
