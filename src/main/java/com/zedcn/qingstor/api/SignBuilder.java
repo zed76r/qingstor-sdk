@@ -16,6 +16,7 @@ import java.util.*;
  * 签名构造器
  * Created by Zed on 2016/3/19.
  */
+@SuppressWarnings("WeakerAccess")
 class SignBuilder {
     private String method;
     private String contentMD5;
@@ -99,6 +100,7 @@ class SignBuilder {
         return this;
     }
 
+    @SuppressWarnings("SameParameterValue")
     SignBuilder addHeaders(String key, String value) {
         headers.put(key, value);
         return this;
@@ -139,7 +141,6 @@ class SignBuilder {
         try {
             Mac sha256_HMAC = Mac.getInstance("HmacSHA256");
             sha256_HMAC.init(secretKey);
-            System.out.println(toSign);
             return "QS-HMAC-SHA256 " + accessKey + ":" + Base64.getEncoder().encodeToString(sha256_HMAC.doFinal(toSign.getBytes()));
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new SignExption();

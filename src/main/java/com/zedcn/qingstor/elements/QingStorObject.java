@@ -1,8 +1,6 @@
 package com.zedcn.qingstor.elements;
 
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
@@ -74,20 +72,9 @@ public class QingStorObject {
      *
      * @return 该实例
      */
-    public QingStorObject autoContentLength() {
+    public QingStorObject autoContentLength() throws IOException {
         if (Objects.nonNull(getContent())) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            byte[] bytes = new byte[128];
-            try {
-                while (getContent().read(bytes) != -1) {
-                    byteArrayOutputStream.write(bytes, 0, bytes.length);
-                }
-                setContentLength(byteArrayOutputStream.size());
-                getContent().close();
-                setContent(new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            setContentLength(getContent().available());
         } else if (Objects.nonNull(getContentBinary())) {
             setContentLength(getContentBinary().length);
         }

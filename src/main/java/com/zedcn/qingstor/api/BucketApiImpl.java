@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import com.zedcn.qingstor.elements.QingCloudAccess;
 import com.zedcn.qingstor.elements.QingStorBucket;
-import com.zedcn.qingstor.elements.QingStorObject;
 import com.zedcn.qingstor.excption.RequestExcption;
 import com.zedcn.qingstor.excption.UnauthorizedExcption;
 import okhttp3.*;
@@ -15,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static com.zedcn.qingstor.api.ApiUtils.*;
 import static com.zedcn.qingstor.api.SignBuilder.getGMTTime;
@@ -26,14 +26,14 @@ class BucketApiImpl implements BucketApi {
 
     BucketApiImpl(QingCloudAccess access) {
         this.access = access;
-        baseUrl = "http://" + access.getLocation() + ".qingstor.com/";
+        baseUrl = "https://" + access.getLocation() + ".qingstor.com/";
     }
 
     @Override
     public List<QingStorBucket> listBucket() {
         long now = System.currentTimeMillis();
         Request request = new Request.Builder()
-                .url("http://qingstor.com")
+                .url("https://qingstor.com")
                 .get()
                 .addHeader("Date", getGMTTime(now))
                 .addHeader("Authorization",
@@ -47,27 +47,23 @@ class BucketApiImpl implements BucketApi {
                 .build();
         try {
             Response response = getClient().newCall(request).execute();
-            String result = response.body().string();
-            if (response.code() == 200) {
-                JsonObject object = new Gson().fromJson(result, JsonObject.class);
-                int count = object.get("count").getAsInt();
-                if (count == 0) return Collections.emptyList();
-                return new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
-                        .create().fromJson(object.get("buckets"), new TypeToken<ArrayList<QingStorBucket>>() {
-                        }.getType());
-            }
+            ResponseBody body = response.body();
+            if (Objects.isNull(body)) return Collections.emptyList();
+            String result = body.string();
             switch (response.code()) {
+                case 200:
+                    JsonObject object = new Gson().fromJson(result, JsonObject.class);
+                    int count = object.get("count").getAsInt();
+                    if (count == 0) return Collections.emptyList();
+                    return new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                            .create().fromJson(object.get("buckets"), new TypeToken<ArrayList<QingStorBucket>>() {
+                            }.getType());
                 case 403:
-                    System.out.println(result);
                     throw new UnauthorizedExcption();
-                default:
-                    System.out.println(result);
-                    break;
             }
             return Collections.emptyList();
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new RequestExcption();
+            throw new RequestExcption(e);
         }
     }
 
@@ -87,24 +83,7 @@ class BucketApiImpl implements BucketApi {
                         .setContentType("text/plain; charset=utf-8")
                         .build())
                 .build();
-        try {
-            Response response = getClient().newCall(request).execute();
-            switch (response.code()) {
-                case 200:
-                case 201:
-                    //ok
-                    break;
-                case 401:
-                case 403:
-                    System.out.println(response.body().string());
-                    throw new UnauthorizedExcption();
-                default:
-                    System.out.println(response.body().string());
-                    break;
-            }
-        } catch (IOException e) {
-            throw new RequestExcption();
-        }
+        requestAnyway(request);
     }
 
     @Override
@@ -123,23 +102,7 @@ class BucketApiImpl implements BucketApi {
                         .build()
                 )
                 .build();
-        try {
-            Response response = getClient().newCall(request).execute();
-            switch (response.code()) {
-                case 200:
-                case 201:
-                    break;
-                case 401:
-                case 403:
-                    System.out.println(response.body().string());
-                    throw new UnauthorizedExcption();
-                default:
-                    System.out.println(response.body().string());
-                    break;
-            }
-        } catch (IOException e) {
-            throw new RequestExcption();
-        }
+        requestAnyway(request);
     }
 
     @Override
@@ -158,7 +121,7 @@ class BucketApiImpl implements BucketApi {
             Response response = getClient().newCall(request).execute();
             return response.code() == 200;
         } catch (IOException e) {
-            throw new RequestExcption();
+            throw new RequestExcption(e);
         }
     }
 }
